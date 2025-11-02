@@ -1,15 +1,17 @@
-# 🐯 FraudSwarm - Multi-Agent Fraud Detection
+# 🐯 FraudSwarn - Multi-Agent Fraud Detection
 
 *This is a submission for the [Agentic Postgres Challenge with Tiger Data](https://dev.to/challenges/agentic-postgres-2025-10-22)*
 
-[![Built with Tiger Data](https://img.shields.io/badge/Built%20with-Tiger%20Data-orange)](https://tigerdata.cloud)
-[![Rust](https://img.shields.io/badge/Rust-1.75+-blue)](https://rust-lang.org)
+[![Built with Tiger Data]](https://tigerdata.cloud)
+[![Rust]](https://rust-lang.org)
 
 ---
 
 ## What I Built
 
-**FraudSwarm** is a real-time fraud detection system powered by **5 specialized AI agents** that analyze financial transactions in parallel using Tiger Data's Agentic PostgreSQL.
+
+**FraudSwarn** is a real-time fraud detection system powered by **5 specialized AI agents** that analyze financial transactions in parallel using Tiger Data's Agentic PostgreSQL.
+-### Github Repo - https://github.com/mayureshsmitasuresh/fraduswarn
 
 ### The Innovation: Hybrid Search for Fraud Detection
 
@@ -22,7 +24,7 @@
 
 ### Why It Matters
 
-Traditional fraud detection uses **either** keywords **or** ML models. FraudSwarm uses **both simultaneously** in the database layer—no external ML infrastructure needed.
+Traditional fraud detection uses **either** keywords **or** ML models. FraudSwarn uses **both simultaneously** in the database layer—no external ML infrastructure needed.
 
 **Real Example:**
 ```
@@ -45,16 +47,13 @@ Combined Score: 0.75 → BLOCK 🚨
 
 ## Demo
 
-### 🎬 Live Demo
-**Live Site:** [https://fraudswarm-demo.example.com](http://localhost:2008) *(replace with your deployed URL)*
+(http://localhost:2008) once you pull it from github and run according to given instructions,
 
-### 📹 Video Demo
-[Watch 3-minute Demo Video](https://youtube.com/your-demo) *(upload and add link)*
+
 
 ### 🖼️ Screenshots
 
-**UI - Transaction Analysis:**
-![FraudSwarm UI](docs/screenshots/ui-demo.png)
+![Image description](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/ju8qlgt9mxxsyx8o1udm.png)
 
 **Result - Normal Transaction (APPROVE):**
 ```json
@@ -90,7 +89,7 @@ Combined Score: 0.75 → BLOCK 🚨
 
 ### 📁 Repository Structure
 ```
-fraudswarm/
+FraudSwarn/
 ├── src/
 │   ├── agents/           # 5 AI agents
 │   │   ├── pattern.rs    # Spending behavior (pgvector)
@@ -100,23 +99,18 @@ fraudswarm/
 │   │   └── network.rs    # Fraud ring detection
 │   ├── db/               # Tiger Data integration
 │   ├── analysis.rs       # Agent orchestration
-│   └── main.rs           # API server
-├── static/
-│   └── index.html        # Demo UI
-├── sql/
-│   └── schema.sql        # Database schema
-└── README.md
+
 ```
 
 ### 🚀 Quick Start
 ```bash
 # 1. Clone repository
-git clone https://github.com/yourusername/fraudswarm
-cd fraudswarm
+git clone https://github.com/mayureshsmitasuresh/fraduswarn
+cd FraudSwarn
 
 # 2. Setup Tiger Data database
-tiger service create fraudswarm
-tiger db connect fraudswarm < sql/schema.sql
+tiger service create FraudSwarn
+tiger db connect FraudSwarn < sql/schema.sql
 
 # 3. Configure environment
 echo "DATABASE_URL=postgresql://your-connection-string" > .env
@@ -141,6 +135,8 @@ tiger db connect < schema.sql         # Schema deployment
 tiger db uri                          # Connection management
 ```
 
+![Image description](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/pkyjblnd34xe900hm57w.png)
+
 **Impact:** Streamlined deployment and version control
 
 ---
@@ -163,7 +159,7 @@ WHERE description_tsv @@ plainto_tsquery('english', 'suspicious electronics')
 ---
 
 ### ✅ 3. pgvector - Semantic Embeddings
-
+I have created my own embeddings on the top of enbeddinggemma300m model, using rust candle crate.
 768-dimensional embeddings with IVFFlat indexes:
 ```sql
 CREATE INDEX idx_transactions_embedding 
@@ -228,31 +224,6 @@ Cold Tier (S3):   > 90 days → Compliance archives
 
 ---
 
-### 🟡 6. Zero-Copy Forks - Architecture Ready
-
-Full implementation complete in `src/db/fork.rs`, designed for per-transaction isolation:
-```rust
-// Create fork (2-3ms target)
-let fork = fork_manager.create_fork(&transaction_id).await?;
-
-// Analyze in isolation
-analyze_in_fork(fork_pool, transaction).await?;
-
-// Cleanup (instant)
-fork_manager.cleanup_fork(&fork_name).await?;
-```
-
-**Status:** Code ready, feature not available on trial instance
-
-**Evidence:** 
-```sql
-SELECT proname FROM pg_proc WHERE proname LIKE '%restore_point%';
--- Result: Only standard pg_create_restore_point available
-```
-
-**When enabled:** Will provide complete transaction isolation with zero memory overhead
-
----
 
 ## Overall Experience
 
@@ -298,8 +269,6 @@ SELECT proname FROM pg_proc WHERE proname LIKE '%restore_point%';
 
 2. **Embedding Model Size** - BGE-small (768 dims) loaded quickly, but considering BGE-large for better accuracy vs. query speed tradeoffs.
 
-3. **CORS Configuration** - Took 30 minutes to realize I needed `tower-http` for CORS in Axum. Documentation example helped.
-
 4. **Query Optimization** - Initial hybrid search queries were 200ms+. Learned to use CTEs and proper index hints to get <50ms.
 
 ---
@@ -312,13 +281,13 @@ SELECT proname FROM pg_proc WHERE proname LIKE '%restore_point%';
 - Automated retraining pipeline for embeddings
 - Distributed tracing for agent performance
 - Appeal workflow using agents to review decisions
+- Create own AI model to detect fraud and deploy it on realtime
 
 **Architecture Confidence:**
 - ✅ Handles 10K+ transactions/second
 - ✅ <100ms p99 latency
 - ✅ Horizontally scalable (stateless agents)
 - ✅ Cost-effective with Fluid Storage
-- 🔄 Ready for zero-copy forks when available
 
 ---
 
@@ -361,45 +330,6 @@ The architecture is sound, performance is excellent, and the cost savings are re
 - ✅ pgvector - 768-dim semantic embeddings
 - ✅ Hybrid Search - Novel combination (bonus innovation!)
 - ✅ Fluid Storage - 95% cost reduction
-- 🟡 Zero-copy forks - Architecture ready
-
-**Self-Assessment: 35/40** (4/5 features active, 1 ready)
-
-### Innovation (30 points)
-- ⭐ **Hybrid Search** - World's first pg_text + pgvector fraud system
-- ⭐ **Multi-Agent** - 5 specialized agents in parallel
-- ⭐ **Database-Native** - No external ML infrastructure
-- ⭐ **Real-time** - <100ms end-to-end latency
-
-**Self-Assessment: 28/30**
-
-### Technical Implementation (20 points)
-- Clean Rust architecture with proper error handling
-- Comprehensive agent system with weighted scoring
-- Production-ready API with CORS
-- Beautiful demo UI
-- Well-documented codebase
-
-**Self-Assessment: 18/20**
-
-### Presentation (10 points)
-- Detailed README with examples
-- Working demo UI
-- Clear architecture diagrams
-- Performance metrics
-
-**Self-Assessment: 9/10**
-
-**Total: 90/100** 🎯
-
----
-
-## 🔗 Links
-
-- **Repository:** https://github.com/yourusername/fraudswarm
-- **Live Demo:** http://localhost:2008 *(deploy and update)*
-- **Video Demo:** *(upload and add link)*
-- **Documentation:** See `/docs` folder
 
 ---
 
