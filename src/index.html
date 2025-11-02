@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>🐯 FraudsWarn - Real-Time Fraud Detection</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Oxygen, Ubuntu, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+        color: #333;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      .header {
+        text-align: center;
+        color: white;
+        margin-bottom: 40px;
+      }
+
+      .header h1 {
+        font-size: 48px;
+        margin-bottom: 10px;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+      }
+
+      .header p {
+        font-size: 18px;
+        opacity: 0.9;
+      }
+
+      .main-content {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        margin-bottom: 20px;
+      }
+
+      @media (max-width: 968px) {
+        .main-content {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .card {
+        background: white;
+        border-radius: 12px;
+        padding: 30px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      }
+
+      .card h2 {
+        color: #667eea;
+        margin-bottom: 20px;
+        font-size: 24px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #555;
+      }
+
+      input,
+      select {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: border-color 0.3s;
+      }
+
+      input:focus,
+      select:focus {
+        outline: none;
+        border-color: #667eea;
+      }
+
+      .location-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+
+      .btn {
+        width: 100%;
+        padding: 15px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 18px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+      }
+
+      .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+      }
+
+      .btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .result-card {
+        background: white;
+        border-radius: 12px;
+        padding: 30px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        display: none;
+      }
+
+      .result-card.show {
+        display: block;
+        animation: slideIn 0.3s ease-out;
+      }
+
+      @keyframes slideIn {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .decision-badge {
+        display: inline-block;
+        padding: 10px 20px;
+        border-radius: 25px;
+        font-weight: 700;
+        font-size: 24px;
+        margin: 20px 0;
+      }
+
+      .decision-approve {
+        background: #10b981;
+        color: white;
+      }
+
+      .decision-challenge {
+        background: #f59e0b;
+        color: white;
+      }
+
+      .decision-block {
+        background: #ef4444;
+        color: white;
+      }
+
+      .metrics {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+        margin: 20px 0;
+      }
+
+      .metric {
+        text-align: center;
+        padding: 15px;
+        background: #f9fafb;
+        border-radius: 8px;
+      }
+
+      .metric-value {
+        font-size: 28px;
+        font-weight: 700;
+        color: #667eea;
+      }
+
+      .metric-label {
+        font-size: 12px;
+        color: #666;
+        margin-top: 5px;
+      }
+
+      .agent-scores {
+        margin: 20px 0;
+      }
+
+      .agent-score {
+        margin-bottom: 15px;
+      }
+
+      .agent-name {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 5px;
+        font-weight: 600;
+      }
+
+      .progress-bar {
+        height: 24px;
+        background: #e5e7eb;
+        border-radius: 12px;
+        overflow: hidden;
+      }
+
+      .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #10b981, #ef4444);
+        transition: width 0.5s ease-out;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        padding-right: 10px;
+        color: white;
+        font-weight: 600;
+        font-size: 12px;
+      }
+
+      .reasoning {
+        background: #f9fafb;
+        padding: 15px;
+        border-radius: 8px;
+        border-left: 4px solid #667eea;
+        margin-top: 20px;
+        line-height: 1.6;
+      }
+
+      .fraud-ring-alert {
+        background: #fee2e2;
+        border: 2px solid #ef4444;
+        color: #991b1b;
+        padding: 15px;
+        border-radius: 8px;
+        margin: 20px 0;
+        font-weight: 600;
+        text-align: center;
+        animation: pulse 2s infinite;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.8;
+        }
+      }
+
+      .loading {
+        text-align: center;
+        padding: 40px;
+      }
+
+      .spinner {
+        border: 4px solid #f3f4f6;
+        border-top: 4px solid #667eea;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 20px;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      .preset-buttons {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        margin-bottom: 20px;
+      }
+
+      .preset-btn {
+        padding: 10px;
+        background: #f3f4f6;
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+        transition: all 0.2s;
+      }
+
+      .preset-btn:hover {
+        background: #667eea;
+        color: white;
+        border-color: #667eea;
+      }
+
+      .feature-showcase {
+        background: white;
+        border-radius: 12px;
+        padding: 30px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        margin-top: 20px;
+      }
+
+      .features-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+        margin-top: 20px;
+      }
+
+      @media (max-width: 768px) {
+        .features-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .feature-box {
+        text-align: center;
+        padding: 20px;
+        background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+        border-radius: 8px;
+      }
+
+      .feature-icon {
+        font-size: 36px;
+        margin-bottom: 10px;
+      }
+
+      .feature-title {
+        font-weight: 700;
+        color: #667eea;
+        margin-bottom: 5px;
+      }
+
+      .feature-desc {
+        font-size: 12px;
+        color: #666;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>🐯 FraudsWarn</h1>
+        <p>Real-Time Multi-Agent Fraud Detection powered by Tiger Data</p>
+      </div>
+
+      <div class="main-content">
+        <!-- Input Form -->
+        <div class="card">
+          <h2>📝 Transaction Details</h2>
+
+          <div class="preset-buttons">
+            <button class="preset-btn" onclick="loadPreset('normal')">
+              ✅ Normal
+            </button>
+            <button class="preset-btn" onclick="loadPreset('suspicious')">
+              ⚠️ Suspicious
+            </button>
+            <button class="preset-btn" onclick="loadPreset('fraud')">
+              🚨 Fraud
+            </button>
+          </div>
+
+          <form id="fraudForm" onsubmit="analyzeFraud(event)">
+            <div class="form-group">
+              <label>User ID</label>
+              <input
+                type="text"
+                id="user_id"
+                value="user_normal_123"
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <label>Amount ($)</label>
+              <input
+                type="number"
+                id="amount"
+                value="100.00"
+                step="0.01"
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <label>Merchant</label>
+              <input
+                type="text"
+                id="merchant"
+                value="Walmart Superstore"
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <label>Category</label>
+              <select id="merchant_category" required>
+                <option value="groceries" selected>Groceries</option>
+                <option value="electronics">Electronics</option>
+                <option value="gas">Gas</option>
+                <option value="food">Food & Dining</option>
+                <option value="hotels">Hotels</option>
+                <option value="general">General</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Location</label>
+              <div class="location-grid">
+                <input
+                  type="text"
+                  id="city"
+                  placeholder="City"
+                  value="Boston"
+                  required
+                />
+                <input
+                  type="text"
+                  id="country"
+                  placeholder="Country"
+                  value="USA"
+                  required
+                />
+                <input
+                  type="number"
+                  id="lat"
+                  placeholder="Latitude"
+                  value="42.3601"
+                  step="0.0001"
+                  required
+                />
+                <input
+                  type="number"
+                  id="lon"
+                  placeholder="Longitude"
+                  value="-71.0589"
+                  step="0.0001"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Payment Method</label>
+              <select id="payment_method" required>
+                <option value="credit_card" selected>Credit Card</option>
+                <option value="debit_card">Debit Card</option>
+                <option value="paypal">PayPal</option>
+                <option value="crypto">Cryptocurrency</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Device Fingerprint</label>
+              <input
+                type="text"
+                id="device_fingerprint"
+                value="fp_normal_device"
+                required
+              />
+            </div>
+
+            <button type="submit" class="btn" id="submitBtn">
+              🔍 Analyze Transaction
+            </button>
+          </form>
+        </div>
+
+        <!-- Results -->
+        <div class="card result-card" id="resultsCard">
+          <h2>📊 Analysis Results</h2>
+
+          <div id="loadingState" class="loading">
+            <div class="spinner"></div>
+            <p>Analyzing with 5 AI agents...</p>
+          </div>
+
+          <div id="resultsContent" style="display: none">
+            <div style="text-align: center">
+              <span class="decision-badge" id="decisionBadge">APPROVE</span>
+            </div>
+
+            <div
+              id="fraudRingAlert"
+              class="fraud-ring-alert"
+              style="display: none"
+            >
+              🚨 FRAUD RING DETECTED 🚨
+            </div>
+
+            <div class="metrics">
+              <div class="metric">
+                <div class="metric-value" id="confidence">85%</div>
+                <div class="metric-label">Confidence</div>
+              </div>
+              <div class="metric">
+                <div class="metric-value" id="latency">87ms</div>
+                <div class="metric-label">Latency</div>
+              </div>
+              <div class="metric">
+                <div class="metric-value" id="avgRisk">0.20</div>
+                <div class="metric-label">Risk Score</div>
+              </div>
+            </div>
+
+            <div class="agent-scores">
+              <h3 style="margin-bottom: 15px">Agent Risk Scores</h3>
+
+              <div class="agent-score">
+                <div class="agent-name">
+                  <span>🎯 Pattern Agent</span>
+                  <span id="patternScore">0.20</span>
+                </div>
+                <div class="progress-bar">
+                  <div class="progress-fill" id="patternBar" style="width: 20%">
+                    20%
+                  </div>
+                </div>
+              </div>
+
+              <div class="agent-score">
+                <div class="agent-name">
+                  <span>⚡ Anomaly Agent</span>
+                  <span id="anomalyScore">0.00</span>
+                </div>
+                <div class="progress-bar">
+                  <div class="progress-fill" id="anomalyBar" style="width: 0%">
+                    0%
+                  </div>
+                </div>
+              </div>
+
+              <div class="agent-score">
+                <div class="agent-name">
+                  <span>🌍 Geographic Agent</span>
+                  <span id="geographicScore">0.00</span>
+                </div>
+                <div class="progress-bar">
+                  <div
+                    class="progress-fill"
+                    id="geographicBar"
+                    style="width: 0%"
+                  >
+                    0%
+                  </div>
+                </div>
+              </div>
+
+              <div class="agent-score">
+                <div class="agent-name">
+                  <span>🏪 Merchant Agent</span>
+                  <span id="merchantScore">0.00</span>
+                </div>
+                <div class="progress-bar">
+                  <div class="progress-fill" id="merchantBar" style="width: 0%">
+                    0%
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="reasoning">
+              <strong>Reasoning:</strong>
+              <p id="reasoning" style="margin-top: 10px"></p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Feature Showcase -->
+      <div class="feature-showcase">
+        <h2 style="color: #667eea; text-align: center; margin-bottom: 10px">
+          Tiger Data Agentic Features
+        </h2>
+        <div class="features-grid">
+          <div class="feature-box">
+            <div class="feature-icon">🔧</div>
+            <div class="feature-title">Tiger CLI</div>
+            <div class="feature-desc">Database lifecycle management</div>
+          </div>
+          <div class="feature-box">
+            <div class="feature-icon">📝</div>
+            <div class="feature-title">pg_text</div>
+            <div class="feature-desc">Full-text search</div>
+          </div>
+          <div class="feature-box">
+            <div class="feature-icon">🧬</div>
+            <div class="feature-title">pgvector</div>
+            <div class="feature-desc">768-dim embeddings</div>
+          </div>
+          <div class="feature-box">
+            <div class="feature-icon">⚡</div>
+            <div class="feature-title">Hybrid Search</div>
+            <div class="feature-desc">Text + Vector (Innovation!)</div>
+          </div>
+          <div class="feature-box">
+            <div class="feature-icon">💾</div>
+            <div class="feature-title">Fluid Storage</div>
+            <div class="feature-desc">95% cost savings</div>
+          </div>
+          <div class="feature-box">
+            <div class="feature-icon">🔱</div>
+            <div class="feature-title">Zero-Copy Forks</div>
+            <div class="feature-desc">Architecture ready</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const API_URL = "http://localhost:2008/api/analyze";
+
+      const presets = {
+        normal: {
+          user_id: "user_normal_123",
+          amount: 100.0,
+          merchant: "Walmart Superstore",
+          merchant_category: "groceries", // Changed from 'category'
+          city: "Boston",
+          country: "USA",
+          lat: 42.3601,
+          lon: -71.0589,
+          payment_method: "credit_card",
+          device_fingerprint: "fp_normal_device",
+        },
+        suspicious: {
+          user_id: "user_normal_123",
+          amount: 1500.0,
+          merchant: "Unknown Electronics",
+          merchant_category: "electronics", // Changed from 'category'
+          city: "Unknown",
+          country: "XX",
+          lat: 0.0,
+          lon: 0.0,
+          payment_method: "credit_card",
+          device_fingerprint: "fp_suspicious",
+        },
+        fraud: {
+          user_id: "user_fraud_789",
+          amount: 3000.0,
+          merchant: "ScamElectronics Inc",
+          merchant_category: "electronics", // Changed from 'category'
+          city: "Unknown",
+          country: "XX",
+          lat: 0.0,
+          lon: 0.0,
+          payment_method: "crypto",
+          device_fingerprint: "fp_fraud_ring_001",
+        },
+      };
+
+      function loadPreset(type) {
+        const preset = presets[type];
+        document.getElementById("user_id").value = preset.user_id;
+        document.getElementById("amount").value = preset.amount;
+        document.getElementById("merchant").value = preset.merchant;
+        document.getElementById("merchant_category").value =
+          preset.merchant_category; // Changed
+        document.getElementById("city").value = preset.city;
+        document.getElementById("country").value = preset.country;
+        document.getElementById("lat").value = preset.lat;
+        document.getElementById("lon").value = preset.lon;
+        document.getElementById("payment_method").value = preset.payment_method;
+        document.getElementById("device_fingerprint").value =
+          preset.device_fingerprint;
+      }
+
+      async function analyzeFraud(event) {
+        event.preventDefault();
+
+        const resultsCard = document.getElementById("resultsCard");
+        const loadingState = document.getElementById("loadingState");
+        const resultsContent = document.getElementById("resultsContent");
+        const submitBtn = document.getElementById("submitBtn");
+
+        // Show results card with loading
+        resultsCard.classList.add("show");
+        loadingState.style.display = "block";
+        resultsContent.style.display = "none";
+        submitBtn.disabled = true;
+        submitBtn.textContent = "⏳ Analyzing...";
+
+        // Collect form data - FIXED HERE
+        const data = {
+          user_id: document.getElementById("user_id").value,
+          amount: parseFloat(document.getElementById("amount").value),
+          merchant: document.getElementById("merchant").value,
+          merchant_category: document.getElementById("merchant_category").value, // Changed from 'category'
+          location: {
+            city: document.getElementById("city").value,
+            country: document.getElementById("country").value,
+            lat: parseFloat(document.getElementById("lat").value),
+            lon: parseFloat(document.getElementById("lon").value),
+          },
+          payment_method: document.getElementById("payment_method").value,
+          device_fingerprint:
+            document.getElementById("device_fingerprint").value,
+        };
+
+        console.log("Submitting data:", data);
+        try {
+          const response = await fetch(API_URL, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data),
+          });
+
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+
+          const result = await response.json();
+
+          // Update UI with results
+          displayResults(result);
+        } catch (error) {
+          console.error("Error:", error);
+          alert(
+            "Failed to analyze transaction. Make sure the API server is running on http://localhost:2008"
+          );
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.textContent = "🔍 Analyze Transaction";
+        }
+      }
+
+      function displayResults(result) {
+        const loadingState = document.getElementById("loadingState");
+        const resultsContent = document.getElementById("resultsContent");
+
+        // Hide loading, show results
+        loadingState.style.display = "none";
+        resultsContent.style.display = "block";
+
+        // Decision badge
+        const decisionBadge = document.getElementById("decisionBadge");
+        decisionBadge.textContent = result.decision;
+        decisionBadge.className =
+          "decision-badge decision-" + result.decision.toLowerCase();
+
+        // Fraud ring alert
+        const fraudRingAlert = document.getElementById("fraudRingAlert");
+        fraudRingAlert.style.display = result.fraud_ring_detected
+          ? "block"
+          : "none";
+
+        // Metrics
+        document.getElementById("confidence").textContent =
+          Math.round(result.confidence * 100) + "%";
+        document.getElementById("latency").textContent =
+          result.latency_ms + "ms";
+
+        const avgRisk =
+          (result.agent_scores.pattern +
+            result.agent_scores.anomaly +
+            result.agent_scores.geographic +
+            result.agent_scores.merchant) /
+          4;
+        document.getElementById("avgRisk").textContent = avgRisk.toFixed(2);
+
+        // Agent scores
+        updateAgentScore("pattern", result.agent_scores.pattern);
+        updateAgentScore("anomaly", result.agent_scores.anomaly);
+        updateAgentScore("geographic", result.agent_scores.geographic);
+        updateAgentScore("merchant", result.agent_scores.merchant);
+
+        // Reasoning
+        document.getElementById("reasoning").textContent = result.reasoning;
+      }
+
+      function updateAgentScore(agent, score) {
+        document.getElementById(agent + "Score").textContent = score.toFixed(2);
+        const percentage = Math.round(score * 100);
+        const bar = document.getElementById(agent + "Bar");
+        bar.style.width = percentage + "%";
+        bar.textContent = percentage + "%";
+      }
+
+      // Load normal preset by default
+      window.onload = () => {
+        loadPreset("normal");
+      };
+    </script>
+  </body>
+</html>

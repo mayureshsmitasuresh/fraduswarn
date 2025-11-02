@@ -1,0 +1,8 @@
+# .gitignore
+/target
+/embeddgemma
+.env
+*.log
+*.pid
+mcp.log
+.DS_Store
