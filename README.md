@@ -2,8 +2,9 @@
 
 *This is a submission for the [Agentic Postgres Challenge with Tiger Data](https://dev.to/challenges/agentic-postgres-2025-10-22)*
 
-[![Built with Tiger Data]](https://tigerdata.cloud)
-[![Rust]](https://rust-lang.org)
+[![Built with Tiger Data](https://img.shields.io/badge/Built%20with-Tiger%20Data-orange)](https://tigerdata.cloud)
+[![Rust](https://img.shields.io/badge/Rust-000000?style=for-the-badge&logo=rust&logoColor=white)](https://www.rust-lang.org)
+
 
 ---
 
